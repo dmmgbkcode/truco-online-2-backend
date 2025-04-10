@@ -1,53 +1,15 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-// Armazenamento temporário de partidas
-const games = {};
-
-io.on('connection', (socket) => {
-  console.log('Um jogador conectado:', socket.id);
-
-  // Entrar em uma sala
-  socket.on('joinRoom', (roomId) => {
-    socket.join(roomId);
-    if (!games[roomId]) {
-      games[roomId] = { players: [], deck: shuffleDeck(), turn: 0 };
-    }
-    games[roomId].players.push(socket.id);
-    io.to(roomId).emit('updateGame', games[roomId]);
-  });
-
-  // Lidar com jogadas
-  socket.on('playCard', ({ roomId, card }) => {
-    const game = games[roomId];
-    if (game) {
-      game.deck.push(card);
-      io.to(roomId).emit('updateGame', game);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Jogador desconectado:', socket.id);
-  });
-});
-
-function shuffleDeck() {
-  const suits = ['Copas', 'Espadas', 'Ouros', 'Paus'];
-  const values = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'];
-  const deck = [];
-  for (let suit of suits) {
-    for (let value of values) {
-      deck.push({ suit, value });
-    }
+{
+    "name": "truco-paulista",
+    "version": "1.0.0",
+    "description": "Backend para o jogo de Truco Paulista",
+    "main": "server.js",
+    "scripts": {
+      "start": "node server.js"
+    },
+    "dependencies": {
+      "express": "^4.18.2",
+      "socket.io": "^4.7.2"
+    },
+    "author": "Seu Nome",
+    "license": "MIT"
   }
-  return deck.sort(() => Math.random() - 0.5);
-}
-
-server.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
-});
